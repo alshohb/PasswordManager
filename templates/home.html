@@ -4,21 +4,87 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Password Manager</title>
+    <style>
+        #passwordRules li.met {
+            color: green;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul>
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
     <h1>Welcome to the Password Manager!</h1>
+
     <h2>Generate a Strong Password</h2>
+    {% if generated_password %}
+    <p>Your generated password is: <strong>{{ generated_password }}</strong></p>
+    {% endif %}
     <form action="/generate_password" method="post">
         <label for="length">Password Length:</label>
         <input type="number" id="length" name="length" value="12">
         <button type="submit">Generate</button>
     </form>
 
-    <h2>Check Password Strength</h2>
+    <h2>Password Rules</h2>
     <form action="/check_strength" method="post">
-        <label for="password">Enter Password:</label>
-        <input type="text" id="password" name="password">
+        <label for="check_password">Enter Password:</label>
+        <input type="text" id="check_password" name="password" oninput="updatePasswordRules(this.value)">
         <button type="submit">Check Strength</button>
     </form>
+
+    <ul id="passwordRules">
+        <li id="minLength">At least 8 characters</li>
+        <li id="upperCase">At least one uppercase letter</li>
+        <li id="lowerCase">At least one lowercase letter</li>
+        <li id="number">At least one number</li>
+        <li id="specialChar">At least one special character</li>
+    </ul>
+
+    <h2>Register New User</h2>
+    <form action="/register" method="post">
+        <label for="new_username">Username:</label>
+        <input type="text" id="new_username" name="username">
+        <label for="new_password">Password:</label>
+        <input type="password" id="new_password" name="password">
+        <button type="submit">Register</button>
+    </form>
+
+    <h2>Login</h2>
+    <form action="/login" method="post">
+        <label for="login_username">Username:</label>
+        <input type="text" id="login_username" name="username">
+        <label for="login_password">Password:</label>
+        <input type="password" id="login_password" name="password">
+        <button type="submit">Login</button>
+    </form>
+
+    <script type="text/javascript">
+        function updatePasswordRules(password) {
+            const rules = [
+                { id: 'minLength', regex: /.{8,}/ },
+                { id: 'upperCase', regex: /[A-Z]/ },
+                { id: 'lowerCase', regex: /[a-z]/ },
+                { id: 'number', regex: /[0-9]/ },
+                { id: 'specialChar', regex: /[^A-Za-z0-9]/ }
+            ];
+        
+            rules.forEach(rule => {
+                if (rule.regex.test(password)) {
+                    document.getElementById(rule.id).classList.add('met');
+                } else {
+                    document.getElementById(rule.id).classList.remove('met');
+                }
+            });
+        }
+    </script>
 </body>
 </html>
