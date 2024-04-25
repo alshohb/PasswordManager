@@ -14,3 +14,7 @@ def show_login_success(user_id):
 def show_login_failure():
     """Inform the user that the login has failed."""
     print("Login failed. Please check your credentials and try again.")
+
+if __name__ == "__main__":
+    username, password = show_login_form()
+    print(f"You entered Username: {username} and Password: {password}")

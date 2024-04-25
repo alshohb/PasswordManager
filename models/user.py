@@ -11,8 +11,9 @@ class User:
         """Create hashed password."""
         self.password_hash = generate_password_hash(password)
 
-    def create(self, db_path='users.db'):
-        """Save user to the database."""
+    @staticmethod
+    def initialize_db(db_path='users.db'):
+        """Create the database tables if they don't exist."""
         conn = sqlite3.connect(db_path)
         c = conn.cursor()
         c.execute('''
@@ -22,12 +23,18 @@ class User:
                 password_hash TEXT NOT NULL
             )
         ''')
+        conn.commit()
+        conn.close()
+
+    def create(self, db_path='users.db'):
+        """Save user to the database."""
+        conn = sqlite3.connect(db_path)
+        c = conn.cursor()
         c.execute('INSERT INTO users (username, password_hash) VALUES (?, ?)',
                   (self.username, self.password_hash))
         conn.commit()
         conn.close()
-
-
+        
 class Password:
     def __init__(self, user_id, website, username, password):
         self.id = None 
