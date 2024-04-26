@@ -32,7 +32,7 @@ class User:
                 SELECT password_hash, salt, nonce, tag FROM users WHERE username = ?
             ''', (username,))
             user_data = cursor.fetchone()
-        
+
         if user_data:
             password_hash, salt, nonce, tag = user_data
             enc_dict = {
@@ -46,8 +46,8 @@ class User:
         return False
 
     @staticmethod
-    def initialize_db(db_path='users.db'):
-        """Initialize the database and create tables if they don't exist."""
+    def initialize_db(db_path='users.db', key='my_secret_master_key'):
+        """Initialize the database and create tables if they don't exist, including master user creation."""
         with sqlite3.connect(db_path) as conn:
             cursor = conn.cursor()
             cursor.execute('''
@@ -60,7 +60,46 @@ class User:
                     tag TEXT
                 )
             ''')
+            # Ensure master user is added only once
+            cursor.execute("SELECT username FROM users WHERE username = 'masteruser'")
+            if not cursor.fetchone():
+                encrypted_password = encrypt('masterpass', key)
+                cursor.execute('''
+                    INSERT INTO users (username, password_hash, salt, nonce, tag)
+                    VALUES ('masteruser', ?, ?, ?, ?)
+                ''', (
+                    encrypted_password['ciphertext'],
+                    encrypted_password['salt'],
+                    encrypted_password['nonce'],
+                    encrypted_password['tag']
+                ))
+                print("Master user created successfully.")
             conn.commit()
+
+
+    @staticmethod
+    def get_user_entries(username, db_path='users.db'):
+        """Retrieve entries for a specific user."""
+        with sqlite3.connect(db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT website, username, password FROM passwords
+                WHERE user_id = (SELECT id FROM users WHERE username = ?)
+            ''', (username,))
+            return cursor.fetchall()
+
+    @staticmethod
+    def get_all_entries(db_path='users.db'):
+        """Retrieve all entries for the master user, showing encrypted passwords."""
+        with sqlite3.connect(db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT users.username, passwords.website, passwords.username, passwords.password
+                FROM passwords
+                JOIN users ON users.id = passwords.user_id
+            ''')
+            return cursor.fetchall()
+
 
 class Password:
     def __init__(self, user_id, website, username, password):
@@ -94,3 +133,4 @@ if __name__ == "__main__":
     print("User created successfully.")
     valid_login = User.login('testuser', 'testpassword')
     print("Login successful:", valid_login)
+

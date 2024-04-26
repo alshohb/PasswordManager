@@ -8,7 +8,6 @@ app.secret_key = 'Shihab2001'  # Use a secure, random secret key
 
 @app.route('/', methods=['GET'])
 def home():
-    # Pass any flashed messages to the template
     return render_template('home.html')
 
 @app.route('/generate_password', methods=['POST'])
@@ -48,13 +47,33 @@ def login():
         valid_login = User.login(username, password)
         if valid_login:
             session['username'] = username
-            flash('Logged in successfully!')
-            return redirect(url_for('home'))
+            if username == 'masteruser':
+                flash('Master logged in successfully!')
+                return redirect(url_for('master_dashboard'))
+            else:
+                flash('Logged in successfully!')
+                return redirect(url_for('user_dashboard'))
         else:
             flash('Invalid username or password')
     except Exception as e:
         flash('Login failed: ' + str(e))
     return redirect(url_for('home'))
+
+@app.route('/user_dashboard')
+def user_dashboard():
+    if 'username' not in session:
+        flash('Please login to view this page.')
+        return redirect(url_for('login'))
+    entries = User.get_user_entries(session['username'])
+    return render_template('user_dashboard.html', username=session['username'], entries=entries)
+
+@app.route('/master_dashboard')
+def master_dashboard():
+    if 'username' not in session or session['username'] != 'masteruser':
+        flash('Unauthorized access.')
+        return redirect(url_for('home'))
+    entries = User.get_all_entries()
+    return render_template('master_dashboard.html', entries=entries)
 
 if __name__ == '__main__':
     app.run(debug=True)

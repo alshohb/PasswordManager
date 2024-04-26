@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+</head>
+<body>
+    <h1>User Dashboard</h1>
+    <p>Welcome, {{ username }}!</p>
+    <h3>Your Stored Passwords</h3>
+    {% for entry in entries %}
+        <p>Website: {{ entry.website }} - Username: {{ entry.username }} - Password: {{ entry.decrypted_password }}</p>
+    {% endfor %}
+</body>
+</html>

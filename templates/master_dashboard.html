@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Dashboard</title>
+</head>
+<body>
+    <h1>Master Dashboard</h1>
+    <p>Welcome, Master!</p>
+    <h3>All User Entries (Encrypted)</h3>
+    {% for entry in entries %}
+        <p>User: {{ entry.username }} - Website: {{ entry.website }} - Encrypted Password: {{ entry.password_hash }}</p>
+    {% endfor %}
+</body>
+</html>
