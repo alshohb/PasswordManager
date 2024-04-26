@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Password Manager</title>
     <style>
+        /* Style to indicate rule fulfillment */
         #passwordRules li.met {
             color: green;
             font-weight: bold;
@@ -12,21 +13,23 @@
     </style>
 </head>
 <body>
+    <!-- Displaying flashed messages from Flask -->
     {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <ul>
-        {% for message in messages %}
-          <li>{{ message }}</li>
-        {% endfor %}
-        </ul>
-      {% endif %}
+        {% if messages %}
+            <ul>
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
     {% endwith %}
 
     <h1>Welcome to the Password Manager!</h1>
 
+    <!-- Section to generate a strong password -->
     <h2>Generate a Strong Password</h2>
     {% if generated_password %}
-    <p>Your generated password is: <strong>{{ generated_password }}</strong></p>
+        <p>Your generated password is: <strong>{{ generated_password }}</strong></p>
     {% endif %}
     <form action="/generate_password" method="post">
         <label for="length">Password Length:</label>
@@ -34,6 +37,7 @@
         <button type="submit">Generate</button>
     </form>
 
+    <!-- Password strength check section -->
     <h2>Password Rules</h2>
     <form action="/check_strength" method="post">
         <label for="check_password">Enter Password:</label>
@@ -41,6 +45,7 @@
         <button type="submit">Check Strength</button>
     </form>
 
+    <!-- List of password rules -->
     <ul id="passwordRules">
         <li id="minLength">At least 8 characters</li>
         <li id="upperCase">At least one uppercase letter</li>
@@ -49,6 +54,7 @@
         <li id="specialChar">At least one special character</li>
     </ul>
 
+    <!-- User registration form -->
     <h2>Register New User</h2>
     <form action="/register" method="post">
         <label for="new_username">Username:</label>
@@ -58,6 +64,7 @@
         <button type="submit">Register</button>
     </form>
 
+    <!-- Login form -->
     <h2>Login</h2>
     <form action="/login" method="post">
         <label for="login_username">Username:</label>
@@ -68,6 +75,7 @@
     </form>
 
     <script type="text/javascript">
+        /* Function to update CSS class based on password rule validation */
         function updatePasswordRules(password) {
             const rules = [
                 { id: 'minLength', regex: /.{8,}/ },
@@ -78,10 +86,11 @@
             ];
         
             rules.forEach(rule => {
+                const ruleElement = document.getElementById(rule.id);
                 if (rule.regex.test(password)) {
-                    document.getElementById(rule.id).classList.add('met');
+                    ruleElement.classList.add('met');
                 } else {
-                    document.getElementById(rule.id).classList.remove('met');
+                    ruleElement.classList.remove('met');
                 }
             });
         }

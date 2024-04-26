@@ -6,11 +6,15 @@
     <title>Master Dashboard</title>
 </head>
 <body>
+    <!-- Heading for the Master Dashboard -->
     <h1>Master Dashboard</h1>
     <p>Welcome, Master!</p>
+
+    <!-- Section to display all entries from the database -->
     <h3>All User Entries (Encrypted)</h3>
     {% for entry in entries %}
-        <p>User: {{ entry.username }} - Website: {{ entry.website }} - Encrypted Password: {{ entry.password_hash }}</p>
+        <!-- Loop through each entry and display user, website and encrypted password -->
+        <p>User: {{ entry.username }} - Website: {{ entry.website }} - Encrypted Password: {{ entry.password }}</p>
     {% endfor %}
 </body>
 </html>

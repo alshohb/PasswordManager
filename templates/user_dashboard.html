@@ -6,10 +6,15 @@
     <title>User Dashboard</title>
 </head>
 <body>
+    <!-- Header for the User Dashboard -->
     <h1>User Dashboard</h1>
+    <!-- Personalized welcome message -->
     <p>Welcome, {{ username }}!</p>
+
+    <!-- Section to display the user's stored passwords -->
     <h3>Your Stored Passwords</h3>
     {% for entry in entries %}
+        <!-- List each stored password with site and username details -->
         <p>Website: {{ entry.website }} - Username: {{ entry.username }} - Password: {{ entry.decrypted_password }}</p>
     {% endfor %}
 </body>
