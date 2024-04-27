@@ -4,17 +4,71 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Master Dashboard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        h1 {
+            color: #444;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: #fff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f7f7f7;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .entry-row {
+            background: #eaeaea;
+            border: 1px solid #ccc;
+        }
+        .entry-row:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+    </style>
 </head>
 <body>
-    <!-- Heading for the Master Dashboard -->
     <h1>Master Dashboard</h1>
     <p>Welcome, Master!</p>
 
-    <!-- Section to display all entries from the database -->
     <h3>All User Entries (Encrypted)</h3>
-    {% for entry in entries %}
-        <!-- Loop through each entry and display user, website and encrypted password -->
-        <p>User: {{ entry.username }} - Website: {{ entry.website }} - Encrypted Password: {{ entry.password }}</p>
-    {% endfor %}
+    <table>
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Website</th>
+                <th>Username on Website</th>
+                <th>Encrypted Password</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in entries %}
+            <!-- Loop through each entry and display user, website, username on website, and encrypted password -->
+            <tr>
+                <td>{{ entry[0] }}</td>
+                <td>{{ entry[1] }}</td>
+                <td>{{ entry[2] }}</td>
+                <td>{{ entry[3] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </body>
 </html>

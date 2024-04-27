@@ -4,18 +4,49 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Dashboard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        h1 {
+            color: #444;
+        }
+        .passwords-list {
+            background: #fff;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .password-item {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+    </style>
 </head>
 <body>
-    <!-- Header for the User Dashboard -->
     <h1>User Dashboard</h1>
-    <!-- Personalized welcome message -->
     <p>Welcome, {{ username }}!</p>
-
-    <!-- Section to display the user's stored passwords -->
-    <h3>Your Stored Passwords</h3>
-    {% for entry in entries %}
-        <!-- List each stored password with site and username details -->
-        <p>Website: {{ entry.website }} - Username: {{ entry.username }} - Password: {{ entry.decrypted_password }}</p>
-    {% endfor %}
+    <div class="passwords-list">
+        {% if entries %}
+            <h3>Your Stored Passwords</h3>
+            {% for entry in entries %}
+                <div class="password-item">
+                    <strong>Website:</strong> {{ entry.website }} <br>
+                    <strong>Username:</strong> {{ entry.username }} <br>
+                    <strong>Password:</strong> {{ entry.decrypted_password }}
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>You have no stored passwords.</p>
+        {% endif %}
+    </div>
 </body>
 </html>

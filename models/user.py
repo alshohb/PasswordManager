@@ -3,20 +3,12 @@ from utils.encryption import encrypt, decrypt
 
 class User:
     def __init__(self, username, password):
-        """
-        Initialize the User object with username and password.
-        :param username: str - the user's username
-        :param password: str - the user's plain text password
-        """
+        # User initialization with provided username and password
         self.username = username
         self.password = password
 
-    def create(self, db_path='users.db', key='my_secret_master_key'):
-        """
-        Create a user in the database with encrypted credentials.
-        :param db_path: str - the database file path
-        :param key: str - encryption key for securing the password
-        """
+    def create(self, db_path='aljahwariDB.db', key='my_secret_master_key'):
+        # Encrypt user's password and store user in the database
         encrypted_password = encrypt(self.password, key)
         with sqlite3.connect(db_path) as conn:
             cursor = conn.cursor()
@@ -33,15 +25,8 @@ class User:
             conn.commit()
 
     @staticmethod
-    def login(username, password_attempt, db_path='users.db', key='my_secret_master_key'):
-        """
-        Attempt to log in a user by verifying their password.
-        :param username: str - the username of the user trying to log in
-        :param password_attempt: str - the attempted password to verify
-        :param db_path: str - the database file path
-        :param key: str - the encryption key used to decrypt the stored password
-        :return: bool - True if login is successful, False otherwise
-        """
+    def login(username, password_attempt, db_path='aljahwariDB.db', key='my_secret_master_key'):
+        # Check if the provided password attempt matches the stored password
         with sqlite3.connect(db_path) as conn:
             cursor = conn.cursor()
             cursor.execute('''
@@ -50,6 +35,7 @@ class User:
             user_data = cursor.fetchone()
 
         if user_data:
+            # If user is found, verify the password
             password_hash, salt, nonce, tag = user_data
             enc_dict = {
                 'ciphertext': password_hash,
@@ -62,12 +48,8 @@ class User:
         return False
 
     @staticmethod
-    def initialize_db(db_path='users.db', key='my_secret_master_key'):
-        """
-        Initialize the database with necessary tables and a master user if not already present.
-        :param db_path: str - the database file path
-        :param key: str - the encryption key for creating the master user
-        """
+    def initialize_db(db_path='aljahwariDB.db', key='my_secret_master_key'):
+        # Initialize the database and create the 'users' and 'passwords' tables if not exist
         with sqlite3.connect(db_path) as conn:
             cursor = conn.cursor()
             cursor.execute('''
@@ -80,9 +62,22 @@ class User:
                     tag TEXT
                 )
             ''')
-            # Adding the master user if not exists
-            cursor.execute("SELECT username FROM users WHERE username = 'masteruser'")
-            if not cursor.fetchone():
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS passwords (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER NOT NULL,
+                    website TEXT NOT NULL,
+                    username TEXT NOT NULL,
+                    password TEXT NOT NULL,
+                    salt TEXT NOT NULL,
+                    nonce TEXT NOT NULL,
+                    tag TEXT NOT NULL,
+                    FOREIGN KEY (user_id) REFERENCES users(id)
+                )
+            ''')
+            # Insert master user if it doesn't exist
+            cursor.execute("SELECT id FROM users WHERE username = 'masteruser'")
+            if cursor.fetchone() is None:
                 encrypted_password = encrypt('masterpass', key)
                 cursor.execute('''
                     INSERT INTO users (username, password_hash, salt, nonce, tag)
@@ -94,25 +89,78 @@ class User:
                     encrypted_password['tag']
                 ))
             conn.commit()
-
-    @staticmethod
-    def get_user_entries(username, db_path='users.db'):
-        """
-        Retrieve all entries related to a specific user from the database.
-        :param username: str - the username whose entries to retrieve
-        :param db_path: str - the database file path
-        :return: list - a list of tuples containing website, username, and password
-        """
+            print("Database and tables initialized, master user checked/created.")
+        
+    def save_password(self, website, username, password, db_path='aljahwariDB.db', key='my_secret_master_key'):
+        """Save a password entry for the user."""
+        encrypted_password = encrypt(password, key)
         with sqlite3.connect(db_path) as conn:
             cursor = conn.cursor()
-            cursor.execute('''
-                SELECT website, username, password FROM passwords
-                WHERE user_id = (SELECT id FROM users WHERE username = ?)
-            ''', (username,))
-            return cursor.fetchall()
+            print(f"Saving password for {self.username} for site {website}")
+            
+            # Ensure the user exists and get their user ID
+            cursor.execute('SELECT id FROM users WHERE username = ?', (self.username,))
+            user_id_result = cursor.fetchone()
+            if user_id_result:
+                user_id = user_id_result[0]
+                print(f"User ID for {self.username}: {user_id}")
+
+                # Insert the password entry
+                cursor.execute('''
+                    INSERT INTO passwords (user_id, website, username, password, salt, nonce, tag)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                ''', (
+                    user_id,
+                    website,
+                    username,  # This should be the username for the site, not the user's login username
+                    encrypted_password['ciphertext'],
+                    encrypted_password['salt'],
+                    encrypted_password['nonce'],
+                    encrypted_password['tag']
+                ))
+                conn.commit()
+                print("Password saved successfully.")
+            else:
+                print("User not found, cannot save password.")
+
+
 
     @staticmethod
-    def get_all_entries(db_path='users.db'):
+    def get_user_entries(username, db_path='aljahwariDB.db', key='my_secret_master_key'):
+        """Retrieve and decrypt user's password entries from the database."""
+        decrypted_entries = []
+        with sqlite3.connect(db_path) as conn:
+            cursor = conn.cursor()
+            print(f"Fetching entries for {username}")
+            cursor.execute('''
+                SELECT p.website, p.username, p.password, p.salt, p.nonce, p.tag
+                FROM passwords AS p
+                JOIN users AS u ON p.user_id = u.id
+                WHERE u.username = ?
+            ''', (username,))
+            entries = cursor.fetchall()
+            print(f"Found {len(entries)} entries for {username}")
+
+            for entry in entries:
+                website, username, encrypted_password, salt, nonce, tag = entry
+                enc_dict = {
+                    'ciphertext': encrypted_password,
+                    'salt': salt,
+                    'nonce': nonce,
+                    'tag': tag
+                }
+                decrypted_password = decrypt(enc_dict, key)
+                decrypted_entries.append({
+                    'website': website,
+                    'username': username,
+                    'decrypted_password': decrypted_password
+                })
+
+        return decrypted_entries
+
+
+    @staticmethod
+    def get_all_entries(db_path='aljahwariDB.db'):
         """
         Retrieve all entries for the master user, showing encrypted passwords.
         :param db_path: str - the database file path
@@ -127,37 +175,25 @@ class User:
             ''')
             return cursor.fetchall()
 
-
-class Password:
-    def __init__(self, user_id, website, username, password):
-        self.user_id = user_id
-        self.website = website
-        self.username = username
-        self.password = password
-
-    def create(self, db_path='users.db'):
-        """Save password to the database."""
-        with sqlite3.connect(db_path) as conn:
-            cursor = conn.cursor()
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS passwords (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    user_id INTEGER NOT NULL,
-                    website TEXT NOT NULL,
-                    username TEXT NOT NULL,
-                    password TEXT NOT NULL,
-                    FOREIGN KEY (user_id) REFERENCES users (id)
-                )
-            ''')
-            cursor.execute('INSERT INTO passwords (user_id, website, username, password) VALUES (?, ?, ?, ?)',
-                           (self.user_id, self.website, self.username, self.password))
-            conn.commit()
-
 if __name__ == "__main__":
     User.initialize_db()
-    print("Database initialized.")
-    test_user = User('testuser', 'testpassword')
-    test_user.create()
-    print("Test user created successfully.")
-    valid_login = User.login('testuser', 'testpassword')
-    print("Login successful:", valid_login)
+
+    # Before creating a new test user, check if the username already exists
+    test_username = 'testuser'
+    test_password = 'testpassword'
+    test_site_username = 'site_username_for_testuser'  # Site-specific username
+
+    # Create a test user if not exists
+    test_user = User(test_username, test_password)
+    with sqlite3.connect('aljahwariDB.db') as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT id FROM users WHERE username = ?", (test_username,))
+        if cursor.fetchone() is None:
+            test_user.create()
+            print("Test user created successfully.")
+        else:
+            print("Test user already exists.")
+
+    # Save a password for the test user
+    test_user.save_password('example.com', test_site_username, test_password)
+    print("Password for test user saved successfully.")

@@ -4,78 +4,151 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Password Manager</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        /* Style to indicate rule fulfillment */
-        #passwordRules li.met {
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #333;
+            margin: 0;
+            padding: 20px;
+            color: #fff;
+            text-align: center;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #4CAF50;
+        }
+        .card {
+            background: #fff;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            color: #333;
+            text-align: left;
+        }
+        input, button {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: 0;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .lock-icon {
+            font-size: 48px;
+            color: #4CAF50;
+            margin-bottom: 20px;
+        }
+        .strong {
             color: green;
+        }
+
+        .weak {
+            color: red;
+        }
+        .password-rules {
+            background: #444;
+            color: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            display: inline-block;
+        }
+        .password-rules ul {
+            text-align: left;
+            list-style-type: none;
+            padding: 0;
+        }
+        .password-rules ul li.met {
+            color: #4CAF50;
             font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <!-- Displaying flashed messages from Flask -->
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <ul>
-                {% for message in messages %}
-                    <li>{{ message }}</li>
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="{{ category }}">{{ message }}</div>
                 {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <i class="lock-icon">🔒</i>
+        <h1>Welcome to the Password Manager!</h1>
+
+        <div class="card">
+            <h2>Generate a Strong Password</h2>
+            {% if generated_password %}
+                <p class="success">Your generated password is: <strong>{{ generated_password }}</strong></p>
+            {% endif %}
+            <form action="/generate_password" method="post">
+                <label for="length">Password Length:</label>
+                <input type="number" id="length" name="length" value="12">
+                <button type="submit">Generate</button>
+            </form>
+        </div>
+
+        <div class="card password-rules">
+            <h2>Password Rules</h2>
+            <form action="/check_strength" method="post">
+                <label for="check_password">Enter Password:</label>
+                <input type="text" id="check_password" name="password" oninput="updatePasswordRules(this.value)">
+                <button type="submit">Check Strength</button>
+            </form>
+        
+            <!-- Display the strength message -->
+            {% if strength %}
+                <p class="{{ strength }}">{{ message }}</p>
+            {% endif %}
+        
+            <ul id="passwordRules">
+                <li id="minLength">At least 8 characters</li>
+                <li id="upperCase">At least one uppercase letter</li>
+                <li id="lowerCase">At least one lowercase letter</li>
+                <li id="number">At least one number</li>
+                <li id="specialChar">At least one special character</li>
             </ul>
-        {% endif %}
-    {% endwith %}
+        </div>
 
-    <h1>Welcome to the Password Manager!</h1>
+        <div class="card">
+            <h2>Register New User</h2>
+            <form action="/register" method="post">
+                <label for="new_username">Username:</label>
+                <input type="text" id="new_username" name="username">
+                <label for="new_password">Password:</label>
+                <input type="password" id="new_password" name="password">
+                <button type="submit">Register</button>
+            </form>
+        </div>
 
-    <!-- Section to generate a strong password -->
-    <h2>Generate a Strong Password</h2>
-    {% if generated_password %}
-        <p>Your generated password is: <strong>{{ generated_password }}</strong></p>
-    {% endif %}
-    <form action="/generate_password" method="post">
-        <label for="length">Password Length:</label>
-        <input type="number" id="length" name="length" value="12">
-        <button type="submit">Generate</button>
-    </form>
-
-    <!-- Password strength check section -->
-    <h2>Password Rules</h2>
-    <form action="/check_strength" method="post">
-        <label for="check_password">Enter Password:</label>
-        <input type="text" id="check_password" name="password" oninput="updatePasswordRules(this.value)">
-        <button type="submit">Check Strength</button>
-    </form>
-
-    <!-- List of password rules -->
-    <ul id="passwordRules">
-        <li id="minLength">At least 8 characters</li>
-        <li id="upperCase">At least one uppercase letter</li>
-        <li id="lowerCase">At least one lowercase letter</li>
-        <li id="number">At least one number</li>
-        <li id="specialChar">At least one special character</li>
-    </ul>
-
-    <!-- User registration form -->
-    <h2>Register New User</h2>
-    <form action="/register" method="post">
-        <label for="new_username">Username:</label>
-        <input type="text" id="new_username" name="username">
-        <label for="new_password">Password:</label>
-        <input type="password" id="new_password" name="password">
-        <button type="submit">Register</button>
-    </form>
-
-    <!-- Login form -->
-    <h2>Login</h2>
-    <form action="/login" method="post">
-        <label for="login_username">Username:</label>
-        <input type="text" id="login_username" name="username">
-        <label for="login_password">Password:</label>
-        <input type="password" id="login_password" name="password">
-        <button type="submit">Login</button>
-    </form>
+        <div class="card">
+            <h2>Login</h2>
+            <form action="/login" method="post">
+                <label for="login_username">Username:</label>
+                <input type="text" id="login_username" name="username">
+                <label for="login_password">Password:</label>
+                <input type="password" id="login_password" name="password">
+                <button type="submit">Login</button>
+            </form>
+        </div>
+    </div>
 
     <script type="text/javascript">
-        /* Function to update CSS class based on password rule validation */
         function updatePasswordRules(password) {
             const rules = [
                 { id: 'minLength', regex: /.{8,}/ },
@@ -84,7 +157,7 @@
                 { id: 'number', regex: /[0-9]/ },
                 { id: 'specialChar', regex: /[^A-Za-z0-9]/ }
             ];
-        
+
             rules.forEach(rule => {
                 const ruleElement = document.getElementById(rule.id);
                 if (rule.regex.test(password)) {
