@@ -112,7 +112,7 @@ class User:
                 ''', (
                     user_id,
                     website,
-                    username,  # This should be the username for the site, not the user's login username
+                    username,  
                     encrypted_password['ciphertext'],
                     encrypted_password['salt'],
                     encrypted_password['nonce'],
