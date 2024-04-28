@@ -12,10 +12,10 @@ To set up the Password Manager, follow these steps:
 
 ### Setup
 1. Clone the repository:
-git clone https://github.com/yourusername/password-manager.git
+git clone https://github.com/alshohb/PasswordManager
 
 2. Navigate to the project directory:
-cd password-manager
+cd PasswordManager
 
 3. Install required Python packages:
 pip install -r requirements.txt
